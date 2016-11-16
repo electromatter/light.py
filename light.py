@@ -17,7 +17,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import time
 import random
-import heapq
 import array
 
 #linear, crossectional, and volumetric size */
@@ -32,7 +31,7 @@ DZ = AREASIZE
 # placeholder opaque light value for debugging
 OPAQUE = -128
 # benchmark sample size - 12.8s for 100000 on my machine with -O3
-SAMPLESIZE = 1000
+SAMPLESIZE = 10000
 
 '''
 arrays are packed: DX*x + DY*y + DZ*z
@@ -228,4 +227,5 @@ def main():
                                                   SAMPLESIZE / elapsed))
 
 if __name__ == '__main__':
+    main()
     main()
