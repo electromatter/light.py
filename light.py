@@ -18,6 +18,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 import time
 import random
 import heapq
+import array
 
 #linear, crossectional, and volumetric size */
 LINSIZE = 16 + 4
@@ -201,8 +202,8 @@ def fill_rand(seed):
 
 def main():
     # setup the data structures to be used
-    seed = [0]*VOLSIZE
-    dest = [0]*VOLSIZE
+    seed = array.array('i', [0]*VOLSIZE)
+    dest = array.array('i', [0]*VOLSIZE)
     seed_queue = []
 
     # setup by surrounding with opaque blocks and filling random light levels
@@ -211,7 +212,9 @@ def main():
 
     start_time = time.time()
     for i in range(SAMPLESIZE):
-        dest = [0]*VOLSIZE  #may not be necessary, was memset in the c code
+        for i in range(VOLSIZE):
+            dest[i] = 0
+        #dest = [0]*VOLSIZE  #may not be necessary, was memset in the c code
         light(seed, dest, scan_seed(seed, seed_queue))
     end_time = time.time()
     elapsed = end_time - start_time     #may not be the same as the c code
