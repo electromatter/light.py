@@ -18,6 +18,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 import time
 import random
 import heapq
+import array
 
 #linear, crossectional, and volumetric size */
 LINSIZE = 16 + 4
@@ -67,7 +68,7 @@ def probe(index, value, seed, dest, seed_queue):
         print('{} {}'.format(index, value))
     #this value is higher, fill the block and enqueue it
     dest[index] = value
-    heapq.heappush(seed_queue, (15-value, index))
+    seed_queue.append(index)
     return seed_queue
 
 def fill(index, seed, dest, seed_queue):
@@ -100,7 +101,7 @@ def scan_seed(seed, seed_queue):
     # scan entire chunk for seeds
     for i in range(VOLSIZE):
         if seed[i] > 0:
-            heapq.heappush(seed_queue, (15-seed[i], i))
+            seed_queue.append(i)
 
     return seed_queue
 
@@ -115,8 +116,10 @@ def light(seed, dest, seed_queue):
     '''
 
     # pop an item off the queue and fill it
-    while seed_queue:
-        fill(heapq.heappop(seed_queue)[1], seed, dest, seed_queue)
+    i = 0
+    while i < len(seed_queue):
+        fill(seed_queue[i], seed, dest, seed_queue)
+        i += 1
 
 def light2(seed, dest):
     '''
@@ -201,9 +204,8 @@ def fill_rand(seed):
 
 def main():
     # setup the data structures to be used
-    seed = [0]*VOLSIZE
-    dest = [0]*VOLSIZE
-    seed_queue = []
+    seed = array.array('i', [0]*VOLSIZE)
+    dest = array.array('i', [0]*VOLSIZE)
 
     # setup by surrounding with opaque blocks and filling random light levels
     seed = border(seed)
@@ -211,7 +213,10 @@ def main():
 
     start_time = time.time()
     for i in range(SAMPLESIZE):
-        dest = [0]*VOLSIZE  #may not be necessary, was memset in the c code
+        seed_queue = []
+        for i in range(VOLSIZE):
+            dest[i] = 0
+        #dest = [0]*VOLSIZE  #may not be necessary, was memset in the c code
         light(seed, dest, scan_seed(seed, seed_queue))
     end_time = time.time()
     elapsed = end_time - start_time     #may not be the same as the c code
