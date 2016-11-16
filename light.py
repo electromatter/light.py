@@ -32,7 +32,7 @@ DZ = AREASIZE
 # placeholder opaque light value for debugging
 OPAQUE = -128
 # benchmark sample size - 12.8s for 100000 on my machine with -O3
-SAMPLESIZE = 1000
+SAMPLESIZE = 10
 
 '''
 arrays are packed: DX*x + DY*y + DZ*z
@@ -52,7 +52,7 @@ light values take the max (they do not add!)
 '''
 
 
-def probe(index, value, seed, dest, seed_queue):
+def probe(index, value, seed, dest, seed_queue, end):
     '''
     index - index of seed and dest for the block being probed
     value - value incoming light value before seeds are evaluated
@@ -63,15 +63,15 @@ def probe(index, value, seed, dest, seed_queue):
     value = value + seed[index] if seed[index] < 0 else seed[index]
 
     if value <= dest[index]:
-        return seed_queue
+        return end
     if value == 0:
         print('{} {}'.format(index, value))
     #this value is higher, fill the block and enqueue it
     dest[index] = value
-    seed_queue.append(index)
-    return seed_queue
+    seed_queue[end] = index
+    return end + 1
 
-def fill(index, seed, dest, seed_queue):
+def fill(index, seed, dest, seed_queue, end):
     '''
     returns int pointer
 
@@ -83,15 +83,15 @@ def fill(index, seed, dest, seed_queue):
     value = dest[index]
 
     #probe in each direction
-    probe(index + DX, value, seed, dest, seed_queue)
-    probe(index + DY, value, seed, dest, seed_queue)
-    probe(index + DZ, value, seed, dest, seed_queue)
-    probe(index - DX, value, seed, dest, seed_queue)
-    probe(index - DY, value, seed, dest, seed_queue)
-    probe(index - DZ, value, seed, dest, seed_queue)
-    return seed_queue
+    end = probe(index + DX, value, seed, dest, seed_queue, end)
+    end = probe(index + DY, value, seed, dest, seed_queue, end)
+    end = probe(index + DZ, value, seed, dest, seed_queue, end)
+    end = probe(index - DX, value, seed, dest, seed_queue, end)
+    end = probe(index - DY, value, seed, dest, seed_queue, end)
+    end = probe(index - DZ, value, seed, dest, seed_queue, end)
+    return end
 
-def scan_seed(seed, seed_queue):
+def scan_seed(seed, seed_queue, end):
     '''
     seed - chunk light data
     seed_queue - priority queue that ranks light sources
@@ -101,11 +101,12 @@ def scan_seed(seed, seed_queue):
     # scan entire chunk for seeds
     for i in range(VOLSIZE):
         if seed[i] > 0:
-            seed_queue.append(i)
+            seed_queue[end] = i
+            end += 1
 
-    return seed_queue
+    return end
 
-def light(seed, dest, seed_queue):
+def light(seed, dest, seed_queue, end):
     '''
     process the queue
     call scan_seed first to initialize the queue
@@ -117,8 +118,8 @@ def light(seed, dest, seed_queue):
 
     # pop an item off the queue and fill it
     i = 0
-    while i < len(seed_queue):
-        fill(seed_queue[i], seed, dest, seed_queue)
+    while i < end:
+        end = fill(seed_queue[i], seed, dest, seed_queue, end)
         i += 1
 
 def light2(seed, dest):
@@ -206,6 +207,7 @@ def main():
     # setup the data structures to be used
     seed = array.array('i', [0]*VOLSIZE)
     dest = array.array('i', [0]*VOLSIZE)
+    seed_queue = array.array('i', [0]*VOLSIZE*6)
 
     # setup by surrounding with opaque blocks and filling random light levels
     seed = border(seed)
@@ -213,11 +215,10 @@ def main():
 
     start_time = time.time()
     for i in range(SAMPLESIZE):
-        seed_queue = []
         for i in range(VOLSIZE):
             dest[i] = 0
         #dest = [0]*VOLSIZE  #may not be necessary, was memset in the c code
-        light(seed, dest, scan_seed(seed, seed_queue))
+        light(seed, dest, seed_queue, scan_seed(seed, seed_queue, 0))
     end_time = time.time()
     elapsed = end_time - start_time     #may not be the same as the c code
 
