@@ -31,11 +31,7 @@ DZ = AREASIZE
 # placeholder opaque light value for debugging
 OPAQUE = -128
 # benchmark sample size - 12.8s for 100000 on my machine with -O3
-<<<<<<< HEAD
 SAMPLESIZE = 10000
-=======
-SAMPLESIZE = 10
->>>>>>> 18a7ddc25a13392d70d26cb41bb1483ae9bca37b
 
 '''
 arrays are packed: DX*x + DY*y + DZ*z
