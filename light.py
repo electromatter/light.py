@@ -17,7 +17,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import time
 import random
-import queue
+import heapq
 
 #linear, crossectional, and volumetric size */
 LINSIZE = 16 + 4
@@ -31,7 +31,7 @@ DZ = AREASIZE
 # placeholder opaque light value for debugging
 OPAQUE = -128
 # benchmark sample size - 12.8s for 100000 on my machine with -O3
-SAMPLESIZE = 10000
+SAMPLESIZE = 1000
 
 '''
 arrays are packed: DX*x + DY*y + DZ*z
@@ -67,7 +67,7 @@ def probe(index, value, seed, dest, seed_queue):
         print('{} {}'.format(index, value))
     #this value is higher, fill the block and enqueue it
     dest[index] = value
-    seed_queue.put((15-value, index))
+    heapq.heappush(seed_queue, (15-value, index))
     return seed_queue
 
 def fill(index, seed, dest, seed_queue):
@@ -100,7 +100,7 @@ def scan_seed(seed, seed_queue):
     # scan entire chunk for seeds
     for i in range(VOLSIZE):
         if seed[i] > 0:
-            seed_queue.put((15-seed[i], i))
+            heapq.heappush(seed_queue, (15-seed[i], i))
 
     return seed_queue
 
@@ -115,8 +115,8 @@ def light(seed, dest, seed_queue):
     '''
 
     # pop an item off the queue and fill it
-    while not seed_queue.empty():
-        fill(seed_queue.get()[1], seed, dest, seed_queue)
+    while seed_queue:
+        fill(heapq.heappop(seed_queue)[1], seed, dest, seed_queue)
 
 def light2(seed, dest):
     '''
@@ -125,10 +125,10 @@ def light2(seed, dest):
     seed - source array of seed for light values
     dest - destination array of calculated light values
     '''
-    seed_queue = queue.PriorityQueue()
+    #seed_queue = queue.PriorityQueue()
 
-    seed_queue = scan_seed(seed, queue)
-    light(seed, dest, queue, seed_queue)
+    #seed_queue = scan_seed(seed, queue)
+    #light(seed, dest, queue, seed_queue)
 
 
 # BELOW HERE IS FOR DEBUGGING/BENCHMARKING
@@ -203,7 +203,7 @@ def main():
     # setup the data structures to be used
     seed = [0]*VOLSIZE
     dest = [0]*VOLSIZE
-    seed_queue = queue.PriorityQueue()
+    seed_queue = []
 
     # setup by surrounding with opaque blocks and filling random light levels
     seed = border(seed)
