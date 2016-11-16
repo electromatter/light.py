@@ -118,7 +118,7 @@ def light(seed, dest, seed_queue, end):
 
     # pop an item off the queue and fill it
     i = 0
-    while i < len(seed_queue):
+    while i < end:
         end = fill(seed_queue[i], seed, dest, seed_queue, end)
         i += 1
 
