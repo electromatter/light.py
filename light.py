@@ -204,14 +204,8 @@ def fill_rand(seed):
 
 def main():
     # setup the data structures to be used
-<<<<<<< HEAD
-    seed = [0]*VOLSIZE
-    dest = [0]*VOLSIZE
-=======
     seed = array.array('i', [0]*VOLSIZE)
     dest = array.array('i', [0]*VOLSIZE)
-    seed_queue = []
->>>>>>> patch-2
 
     # setup by surrounding with opaque blocks and filling random light levels
     seed = border(seed)
